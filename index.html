@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empathy - Bienvenido</title>
-    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="icon" type="image/png" href="./images/logo.png">
     <style>
         * {
             margin: 0;
@@ -142,7 +142,7 @@
     </div>
     
     <div class="redirect-container">
-        <img src="images/logo.png" alt="Empathy Logo" class="logo">
+        <img src="./images/logo.png" alt="Empathy Logo" class="logo">
         <h1 class="title">Empathy</h1>
         <p class="subtitle">Un espacio seguro para compartir y crecer</p>
         <div class="loading">
@@ -198,7 +198,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('logout') === 'true') {
                 console.log('🔒 Logout detectado - FORZANDO redirección al login...');
-                window.location.href = 'auth.html';
+                window.location.href = './Html/auth.html';
                 return;
             }
             
@@ -209,11 +209,11 @@
             if (session) {
                 console.log('✅ Sesión activa encontrada, redirigiendo a la aplicación...');
                 console.log('👤 Usuario:', session.userId);
-                window.location.href = 'app.html';
+                window.location.href = './Html/app.html';
             } else {
                 console.log('❌ No hay sesión activa, redirigiendo al login...');
                 console.log('🔐 Mostrando pantalla de autenticación...');
-                window.location.href = 'auth.html';
+                window.location.href = './Html/auth.html';
             }
         }
 
