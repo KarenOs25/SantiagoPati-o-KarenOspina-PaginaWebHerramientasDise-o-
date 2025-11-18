@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empathy - Bienvenido</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .redirect-container {
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            margin: 0 auto 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: pulse 2s infinite;
+        }
+        
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 40px;
+            height: 40px;
+            top: 70%;
+            right: 20%;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 30%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+    
+    <div class="redirect-container">
+        <img src="images/logo.png" alt="Empathy Logo" class="logo">
+        <h1 class="title">Empathy</h1>
+        <p class="subtitle">Un espacio seguro para compartir y crecer</p>
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>Cargando...</span>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const AUTH_CONFIG = {
+            SESSION_KEY: 'empathy_session',
+            USERS_KEY: 'empathy_users'
+        };
+
+        // ===== VERIFICACIÓN DE SESIÓN =====
+        function checkSession() {
+            const sessionData = localStorage.getItem(AUTH_CONFIG.SESSION_KEY);
+            
+            if (!sessionData) {
+                return null;
+            }
+
+            try {
+                const session = JSON.parse(sessionData);
+                const now = new Date();
+                const expiresAt = new Date(session.expiresAt);
+
+                if (now > expiresAt) {
+                    localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+                    return null;
+                }
+
+                // Verificar que el usuario aún existe
+                const users = JSON.parse(localStorage.getItem(AUTH_CONFIG.USERS_KEY) || '[]');
+                const user = users.find(u => u.id === session.userId && u.isActive);
+                
+                if (!user) {
+                    localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+                    return null;
+                }
+
+                return session;
+            } catch (error) {
+                localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+                return null;
+            }
+        }
+
+        // ===== REDIRECCIÓN AUTOMÁTICA =====
+        function redirect() {
+            // SIEMPRE verificar parámetro logout primero
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'true') {
+                console.log('🔒 Logout detectado - FORZANDO redirección al login...');
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            const session = checkSession();
+            
+            console.log('🔍 Estado de sesión:', session ? 'ACTIVA' : 'INACTIVA');
+            
+            if (session) {
+                console.log('✅ Sesión activa encontrada, redirigiendo a la aplicación...');
+                console.log('👤 Usuario:', session.userId);
+                window.location.href = 'app.html';
+            } else {
+                console.log('❌ No hay sesión activa, redirigiendo al login...');
+                console.log('🔐 Mostrando pantalla de autenticación...');
+                window.location.href = 'auth.html';
+            }
+        }
+
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Empathy - Verificando autenticación...');
+            console.log('📍 Punto de entrada: index.html');
+            
+            // Verificar si se debe forzar logout
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'true') {
+                console.log('🧹 Forzando limpieza de sesión...');
+                localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+                localStorage.removeItem(AUTH_CONFIG.USERS_KEY);
+                localStorage.removeItem('userProfilePic');
+                sessionStorage.clear();
+                // Remover parámetro de URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Verificar estado de localStorage
+            const sessionData = localStorage.getItem(AUTH_CONFIG.SESSION_KEY);
+            const usersData = localStorage.getItem(AUTH_CONFIG.USERS_KEY);
+            
+            console.log('📊 Datos de sesión:', sessionData ? 'ENCONTRADOS' : 'NO HAY');
+            console.log('📊 Datos de usuarios:', usersData ? 'ENCONTRADOS' : 'NO HAY');
+            
+            // Limpiar cualquier sesión corrupta
+            try {
+                if (sessionData) {
+                    JSON.parse(sessionData); // Probar si es JSON válido
+                    console.log('✅ Datos de sesión válidos');
+                }
+            } catch (error) {
+                console.log('🧹 Limpiando sesión corrupta...');
+                localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+            }
+            
+            // Simular carga por 2 segundos para mostrar la animación
+            setTimeout(redirect, 2000);
+        });
+    </script>
+</body>
+</html>
